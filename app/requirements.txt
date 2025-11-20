@@ -1,0 +1,7 @@
+streamlit
+pandas
+numpy
+tensorflow
+scikit-learn
+folium  # optional, for map-based features
+streamlit-folium  # optional helper
