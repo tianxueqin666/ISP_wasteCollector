@@ -4,7 +4,7 @@
             replicating the results from the paper:
             "A Machine Learning Approach to Predicting Waste Bin Fill Levels
                 for Smart Waste Management Systems"
-
+            by A. K. Sanga et al., Sensors 2021.
 """
 
 import numpy as np

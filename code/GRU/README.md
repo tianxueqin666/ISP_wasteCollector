@@ -26,10 +26,10 @@ Output (predicted fill level)
 
 ### GRU Equations (from paper)
 The GRU implementation uses the following equations:
-- **Update gate**: z_t = σ(W_z·x_t + V_z·h_{t-1} + b_z)
-- **Reset gate**: r_t = σ(W_r·x_t + V_r·h_{t-1} + b_r)
-- **Candidate activation**: h̃_t = tanh(W_c·x_t + V_c·(r_t · h_{t-1}))
-- **Final hidden state**: h_t = z_t · h_{t-1} + (1 - z_t) · h̃_t
+- **Update gate**: $z_t = \sigma(W_z·x_t + V_z·h_{t-1} + b_z)$
+- **Reset gate**: $r_t = \sigma(W_r·x_t + V_r·h_{t-1} + b_r)$
+- **Candidate activation**: $\tilde{h}_t = \tanh(W_c·x_t + V_c·(r_t · h_{t-1}))$
+- **Final hidden state**: $h_t = z_t · h_{t-1} + (1 - z_t) · \tilde{h}_t$
 
 ## Methodology
 
@@ -85,8 +85,6 @@ This will:
    - Plots: `gru_training_results.png`
 
 ### Model Outputs
-
-After training, you'll find:
 
 **Model Files:**
 - `gru_individual_bin_model.keras` - Trained model in Keras format

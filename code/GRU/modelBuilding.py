@@ -46,7 +46,7 @@ def build_gru_model(n_steps: int, n_features: int = 1) -> keras.Model:
             ),
             # Dropout layer for regularization
             # Paper may have used dropout rate between 0.2-0.5
-            layers.Dropout(0.2, name="dropout"),
+            layers.Dropout(0.4, name="dropout"),
             # Dense output layer (1 unit for regression)
             # 101 parameters: 100 weights + 1 bias
             layers.Dense(1, name="dense"),
