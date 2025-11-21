@@ -3,12 +3,25 @@ import pandas as pd
 import numpy as np
 import os
 import pickle
+import altair as alt
 from datetime import timedelta
 
 st.set_page_config(page_title="Waste Collector — Forecast", layout="wide")
 
-st.title("Waste Collector — Fill-level Forecast")
-st.markdown("Simple demo app that loads a saved Keras model + pickled scalers and runs per-bin predictions.")
+# Logo path (computed relative to this file)
+LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Logo.jpeg")
+
+# Top row: logo on the right (above title)
+col_left, col_right = st.columns([8, 2])
+with col_left:
+    st.title("Waste Collector — Fill-level Forecast")
+    st.markdown("Simple demo app that loads a saved Keras model + pickled scalers and runs per-bin predictions.")
+with col_right:
+    try:
+        if os.path.exists(LOGO_PATH):
+            st.image(LOGO_PATH, width=100)
+    except Exception:
+        pass
 
 # Paths (relative to repo root)
 # Resolve model/data paths relative to the repo root (two levels up from this file)
@@ -34,6 +47,7 @@ PROCESSED_CSV = next((p for p in PROCESSED_CSV_CANDIDATES if os.path.exists(p)),
 # Default model/scaler filenames
 DEFAULT_MODEL = os.path.join(MODEL_FOLDER, "bilstm_model.keras")
 DEFAULT_SCALER = os.path.join(MODEL_FOLDER, "bilstm_scalers.pkl")
+ 
 
 # Sidebar: model selection and basic controls
 with st.sidebar:
@@ -104,10 +118,10 @@ with st.sidebar:
         end_date = st.date_input("End date (prediction baseline)")
 
     selected_bins = st.multiselect("Select bin serialNumber(s)", options=available_serials, default=available_serials[:3])
-    if len(available_serials) < len(serials):
-        st.info(f"Showing {len(available_serials)}/{len(serials)} bins — only bins with saved scalers are selectable.")
+    # if len(available_serials) < len(serials):
+    #     st.info(f"Showing {len(available_serials)}/{len(serials)} bins — only bins with saved scalers are selectable.")
 
-    st.markdown("---")
+    # st.markdown("---")
     predict_btn = st.button("Predict")
 
 # Helpers: load model & scalers
@@ -126,6 +140,24 @@ def load_scalers(path):
     with open(path, "rb") as fh:
         obj = pickle.load(fh)
     return obj
+
+
+# Small helper to plot time series with the brand color
+def plot_time_series_df(series, title=None):
+    try:
+        df_plot = series.reset_index()
+        df_plot.columns = ["timestamp", "value"]
+        chart = (
+            alt.Chart(df_plot)
+            .mark_line(color="#81b43a")
+            .encode(x="timestamp:T", y="value:Q", tooltip=["timestamp", "value"]) 
+            .interactive()
+        )
+        if title:
+            chart = chart.properties(title=title)
+        st.altair_chart(chart, use_container_width=True)
+    except Exception as e:
+        st.write(f"Could not render chart: {e}")
 
 # Try loading model and scalers (deferred until needed)
 model = None
@@ -154,7 +186,7 @@ if predict_btn:
         st.error("No data available or no bins selected. Ensure processed CSV exists and bins are selected.")
     else:
         results = []
-        charts_col1 = st.container()
+        charts_data = []  # collect (bin_id, chart_series) to render after the results table
         for bin_id in selected_bins:
             bin_id_orig = bin_id
             # serialNumber column may be int; df has ints
@@ -193,14 +225,10 @@ if predict_btn:
                 pred_date = pd.to_datetime(end_date) + timedelta(days=1)
                 results.append({"serialNumber": bin_id_orig, "predicted_date": pred_date.date(), "predicted_fill": float(y_pred_orig)})
 
-                # show chart with history and predicted point
-                with charts_col1:
-                    st.subheader(f"Bin {bin_id_orig}")
-                    # Use tail() instead of deprecated .last() which expects an offset string
-                    hist = df_cut.set_index("timestamp")["latestFullness"].tail(n_steps * 3)
-                    # append predicted point to the series for plotting
-                    chart_df = pd.concat([hist, pd.Series({pd.to_datetime(pred_date): y_pred_orig})])
-                    st.line_chart(chart_df)
+                # create chart series (history + predicted point) but don't render yet
+                hist = df_cut.set_index("timestamp")["latestFullness"].tail(n_steps * 3)
+                chart_df = pd.concat([hist, pd.Series({pd.to_datetime(pred_date): y_pred_orig})])
+                charts_data.append((bin_id_orig, chart_df))
             except Exception as e:
                 st.error(f"Prediction failed for bin {bin_id_orig}: {e}")
 
@@ -212,6 +240,13 @@ if predict_btn:
             # CSV download
             csv = res_df.to_csv(index=False).encode("utf-8")
             st.download_button(label="Download predictions as CSV", data=csv, file_name="predictions.csv", mime="text/csv")
+
+            # Now render charts for each bin (after showing table)
+            charts_container = st.container()
+            with charts_container:
+                for bin_id_orig, chart_series in charts_data:
+                    st.subheader(f"Bin {bin_id_orig}")
+                    plot_time_series_df(chart_series, title=f"Bin {bin_id_orig}")
 else:
     st.info("Configure parameters in the sidebar and click Predict.")
 
