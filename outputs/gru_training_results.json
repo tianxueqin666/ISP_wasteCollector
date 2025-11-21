@@ -1,0 +1,24 @@
+{
+  "model_type": "GRU",
+  "training_metrics": {
+    "MAE": 1.7625620125555175,
+    "MAPE": 0.3984548993157689,
+    "RMSE": 2.3451014045335485,
+    "R2": 0.4928554135880924
+  },
+  "test_metrics": {
+    "MAE": 1.9324524971955004,
+    "MAPE": 0.42449182073751285,
+    "RMSE": 2.5710516189208383,
+    "R2": 0.41954443384195617
+  },
+  "training_config": {
+    "epochs": 20,
+    "batch_size": 70,
+    "sequence_length": 30,
+    "total_sequences": 31403,
+    "train_sequences": 25110,
+    "test_sequences": 6293,
+    "num_bins": 31
+  }
+}
