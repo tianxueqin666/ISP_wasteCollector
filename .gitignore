@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 weather_cache.json
 Jakob_Record.md
+venv/
+.venv/
+**/venv/
