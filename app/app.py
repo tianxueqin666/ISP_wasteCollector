@@ -8,10 +8,10 @@ from datetime import timedelta
 
 st.set_page_config(page_title="Waste Collector — Forecast", layout="wide")
 
-# Logo path (computed relative to this file)
+# Logo path 
 LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Logo.jpeg")
 
-# Top row: logo on the right (above title)
+# Top row
 col_left, col_right = st.columns([8, 2])
 with col_left:
     st.title("Waste Collector — Fill-level Forecast")
@@ -23,37 +23,32 @@ with col_right:
     except Exception:
         pass
 
-# Paths (relative to repo root)
-# Resolve model/data paths relative to the repo root (two levels up from this file)
+# Paths 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(HERE)
 
-# Candidate model folders (handle being run from project root or from app/)
+# Candidate model folders
 MODEL_FOLDER_CANDIDATES = [
     os.path.join(REPO_ROOT, "outputs", "models"),
     os.path.join(REPO_ROOT, "..", "outputs", "models"),
 ]
 
-# Pick the first existing model folder, falling back to the first candidate
 MODEL_FOLDER = next((p for p in MODEL_FOLDER_CANDIDATES if os.path.isdir(p)), MODEL_FOLDER_CANDIDATES[0])
-
-# Processed CSV path (same logic)
 PROCESSED_CSV_CANDIDATES = [
     os.path.join(REPO_ROOT, "data", "processed_filllevel.csv"),
     os.path.join(REPO_ROOT, "..", "data", "processed_filllevel.csv"),
 ]
 PROCESSED_CSV = next((p for p in PROCESSED_CSV_CANDIDATES if os.path.exists(p)), PROCESSED_CSV_CANDIDATES[0])
 
-# Default model/scaler filenames
+# Default model/scaler 
 DEFAULT_MODEL = os.path.join(MODEL_FOLDER, "bilstm_model.keras")
 DEFAULT_SCALER = os.path.join(MODEL_FOLDER, "bilstm_scalers.pkl")
  
 
-# Sidebar: model selection and basic controls
+# Sidebar
 with st.sidebar:
     st.header("Controls")
 
-    # discover .keras models in outputs/models
     models = []
     if os.path.isdir(MODEL_FOLDER):
         for name in os.listdir(MODEL_FOLDER):
@@ -70,13 +65,10 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("Data range / bin selection")
 
-    # Load processed CSV if available to populate bins and date range
     df = None
     if os.path.exists(PROCESSED_CSV):
         try:
-            # 'infer_datetime_format' is deprecated; rely on pandas default parsing
             df = pd.read_csv(PROCESSED_CSV, parse_dates=["date"])
-            # Normalize column names: 'date' may be named 'date' or 'timestamp' in different scripts
             if "timestamp" in df.columns:
                 df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
             else:
@@ -87,7 +79,6 @@ with st.sidebar:
 
             serials = sorted(df["serialNumber"].astype(str).unique().tolist())
 
-            # If scaler file exists, restrict selectable bins to those present in the scaler dict
             available_serials = serials
             try:
                 if os.path.exists(scaler_choice):
@@ -117,14 +108,17 @@ with st.sidebar:
     else:
         end_date = st.date_input("End date (prediction baseline)")
 
-    selected_bins = st.multiselect("Select bin serialNumber(s)", options=available_serials, default=available_serials[:3])
-    # if len(available_serials) < len(serials):
-    #     st.info(f"Showing {len(available_serials)}/{len(serials)} bins — only bins with saved scalers are selectable.")
+    # Default selection method
+    selection_method = st.radio("Selection method:", ["Dropdown", "Map-based"], horizontal=True)
+
+    if selection_method == "Dropdown":
+        selected_bins = st.multiselect("Select bin serialNumber(s)", options=available_serials, default=available_serials[:3])
+    else:
+        selected_bins = []  
 
     # st.markdown("---")
     predict_btn = st.button("Predict")
 
-# Helpers: load model & scalers
 @st.cache_resource
 def load_keras_model(path):
     import tensorflow as tf
@@ -142,7 +136,6 @@ def load_scalers(path):
     return obj
 
 
-# Small helper to plot time series with the brand color
 def plot_time_series_df(series, title=None):
     try:
         df_plot = series.reset_index()
@@ -159,7 +152,6 @@ def plot_time_series_df(series, title=None):
     except Exception as e:
         st.write(f"Could not render chart: {e}")
 
-# Try loading model and scalers (deferred until needed)
 model = None
 scalers = None
 model_load_error = None
@@ -174,22 +166,90 @@ scalers = load_scalers(scaler_choice)
 if scalers is None:
     scaler_missing = True
 
-# Main: on predict
+# Main Panel
+if selection_method == "Map-based" and df is not None:
+    st.subheader("📍 Select bins by geographic area")
+    
+    # Prepare map data
+    bin_locations = df.drop_duplicates(subset=["serialNumber"])[["serialNumber", "latitude", "longitude"]].copy()
+    bin_locations["serialNumber_str"] = bin_locations["serialNumber"].astype(str)
+    brush = alt.selection_interval(name="brush")
+    
+    # Calculate data bounds with 10% padding for better visibility
+    lat_min, lat_max = bin_locations["latitude"].min(), bin_locations["latitude"].max()
+    lon_min, lon_max = bin_locations["longitude"].min(), bin_locations["longitude"].max()
+    
+    lat_padding = (lat_max - lat_min) * 0.1
+    lon_padding = (lon_max - lon_min) * 0.1
+    
+    lat_domain = [lat_min - lat_padding, lat_max + lat_padding]
+    lon_domain = [lon_min - lon_padding, lon_max + lon_padding]
+    
+    map_chart = alt.Chart(bin_locations).mark_circle(size=150, color="#81b43a", opacity=0.8).encode(
+        x=alt.X("longitude:Q", scale=alt.Scale(domain=lon_domain)),
+        y=alt.Y("latitude:Q", scale=alt.Scale(domain=lat_domain)),
+        tooltip=["serialNumber:N", "latitude:Q", "longitude:Q"],
+        color=alt.condition(brush, alt.value("#81b43a"), alt.value("#ccc"))
+    ).add_params(
+        brush
+    ).properties(
+        width=900,
+        height=600,
+        title="Bins Map — Drag to select region"
+    ).interactive()
+    
+    # Display chart and capture selection
+    selected_data = st.altair_chart(map_chart, use_container_width=True, on_select="rerun")
+    
+    if selected_data and "selection" in selected_data and "brush" in selected_data["selection"]:
+        brush_data = selected_data["selection"]["brush"]
+        
+        mask = pd.Series([True] * len(bin_locations), index=bin_locations.index)
+        for key, value in brush_data.items():
+            if key == "longitude" and isinstance(value, list) and len(value) == 2:
+                mask &= (bin_locations["longitude"] >= value[0]) & (bin_locations["longitude"] <= value[1])
+            elif key == "latitude" and isinstance(value, list) and len(value) == 2:
+                mask &= (bin_locations["latitude"] >= value[0]) & (bin_locations["latitude"] <= value[1])
+        
+        selected_bins = bin_locations.loc[mask, "serialNumber_str"].tolist()
+        if selected_bins:
+            st.session_state.selected_bins_map = selected_bins
+            st.success(f"Selected {len(selected_bins)} bin(s)")
+        else:
+            st.session_state.selected_bins_map = []
+    elif "selected_bins_map" in st.session_state and st.session_state.selected_bins_map:
+        st.info(f"Currently selected: {len(st.session_state.selected_bins_map)} bin(s)")
+    else:
+        st.info("Drag a rectangle to select bins. Click 'Predict' to use selected bins.")
+
+
+# Map predictions
 if predict_btn:
-    if model_load_error:
+    # Determine which bins to use based on selection method
+    if selection_method == "Map-based":
+        if "selected_bins_map" in st.session_state and st.session_state.selected_bins_map:
+            bins_to_predict = st.session_state.selected_bins_map
+        else:
+            st.warning("No bins selected from map. Please drag to select bins on the map above.")
+            bins_to_predict = []
+    else:
+        bins_to_predict = selected_bins
+    
+    if not bins_to_predict:
+        st.error("No bins selected. Please select bins using the dropdown or map.")
+    elif model_load_error:
         st.error(f"Model load failed: {model_load_error}")
     elif model is None:
         st.error("Model not loaded.")
     elif scaler_missing:
         st.error(f"Scalers file not found or failed to load: {scaler_choice}")
-    elif df is None or len(selected_bins) == 0:
-        st.error("No data available or no bins selected. Ensure processed CSV exists and bins are selected.")
+    elif df is None:
+        st.error("No data available. Ensure processed CSV exists.")
     else:
         results = []
-        charts_data = []  # collect (bin_id, chart_series) to render after the results table
-        for bin_id in selected_bins:
+        charts_data = []  
+        for bin_id in bins_to_predict:
             bin_id_orig = bin_id
-            # serialNumber column may be int; df has ints
             bin_mask = df["serialNumber"].astype(str) == str(bin_id_orig)
             df_bin = df[bin_mask].sort_values("timestamp")
             if df_bin.empty:
@@ -203,10 +263,9 @@ if predict_btn:
                 st.warning(f"Bin {bin_id_orig}: not enough data before {end_date} (have {len(df_cut)}, need {n_steps})")
                 continue
             seq = df_cut["latestFullness"].values[-n_steps:]
-            # get scaler for this bin (scalers expected keyed by serialNumber)
+            # get scaler for this bin 
             scaler = None
             if isinstance(scalers, dict):
-                # try both str and int keys
                 scaler = scalers.get(bin_id_orig) or scalers.get(int(bin_id_orig)) or scalers.get(str(bin_id_orig))
             else:
                 scaler = scalers
@@ -215,7 +274,7 @@ if predict_btn:
                 st.warning(f"No scaler found for bin {bin_id_orig}, skipping")
                 continue
 
-            # transform sequence and predict
+            # Predict
             try:
                 seq_reshaped = np.array(seq).reshape(-1, 1)
                 seq_scaled = scaler.transform(seq_reshaped).reshape(1, n_steps, 1)
@@ -225,7 +284,6 @@ if predict_btn:
                 pred_date = pd.to_datetime(end_date) + timedelta(days=1)
                 results.append({"serialNumber": bin_id_orig, "predicted_date": pred_date.date(), "predicted_fill": float(y_pred_orig)})
 
-                # create chart series (history + predicted point) but don't render yet
                 hist = df_cut.set_index("timestamp")["latestFullness"].tail(n_steps * 3)
                 chart_df = pd.concat([hist, pd.Series({pd.to_datetime(pred_date): y_pred_orig})])
                 charts_data.append((bin_id_orig, chart_df))
@@ -237,11 +295,45 @@ if predict_btn:
             st.success("Predictions ready")
             st.dataframe(res_df)
 
-            # CSV download
-            csv = res_df.to_csv(index=False).encode("utf-8")
-            st.download_button(label="Download predictions as CSV", data=csv, file_name="predictions.csv", mime="text/csv")
+            # Export
+            st.markdown("---")
+            st.subheader("Export Results")
+            
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                csv = res_df.to_csv(index=False).encode("utf-8")
+                st.download_button(
+                    label="Download as CSV",
+                    data=csv,
+                    file_name=f"predictions_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    mime="text/csv"
+                )
 
-            # Now render charts for each bin (after showing table)
+            with col2:
+                json_data = res_df.to_json(orient="records", indent=2).encode("utf-8")
+                st.download_button(
+                    label="Download as JSON",
+                    data=json_data,
+                    file_name=f"predictions_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.json",
+                    mime="application/json"
+                )
+            
+            with col3:
+                try:
+                    import io
+                    excel_buffer = io.BytesIO()
+                    res_df.to_excel(excel_buffer, index=False, sheet_name="Predictions")
+                    excel_buffer.seek(0)
+                    st.download_button(
+                        label="📊 Download as Excel",
+                        data=excel_buffer.getvalue(),
+                        file_name=f"predictions_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                except ImportError:
+                    st.info("Install `openpyxl` for Excel export: `pip install openpyxl`")
+
             charts_container = st.container()
             with charts_container:
                 for bin_id_orig, chart_series in charts_data:
@@ -250,10 +342,9 @@ if predict_btn:
 else:
     st.info("Configure parameters in the sidebar and click Predict.")
 
-# Footer: quick diagnostics
 st.sidebar.markdown("---")
-st.sidebar.write(f"Model path: {model_choice}")
-st.sidebar.write(f"Scaler path: {scaler_choice}")
+st.sidebar.write(f"**Model file**: `{os.path.basename(model_choice)}`")
+st.sidebar.write(f"**Scaler file**: `{os.path.basename(scaler_choice)}`")
 if model_load_error:
     st.sidebar.error("Model failed to load — check logs")
 
