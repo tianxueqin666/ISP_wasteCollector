@@ -225,13 +225,5 @@ if predict_btn:
     )
 
     st.altair_chart((base + full_line).properties(height=450), use_container_width=True)
-
-    st.markdown("---")
-    st.write("**Bins selected:**", bins_to_plot)
-    st.write("**Plotted bins:**", labels)
-    st.write("**fill_rates shape:**", np.array(fill_rates).shape)
-    st.write("**Used predictions:**", needed)
-    st.write("**Accumulated fill_levels shape:**", fill_levels.shape)
-
 else:
     st.info("Pick bins (dropdown/map), set amount of days, then click Predict.")
