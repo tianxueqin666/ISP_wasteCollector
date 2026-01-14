@@ -196,7 +196,7 @@ if selection_method == "Map-based" and df is not None:
         width=900,
         height=600,
         title="Bins Map — Drag to select region"
-    ).interactive()
+    )
     
     # Display chart and capture selection
     selected_data = st.altair_chart(map_chart, use_container_width=True, on_select="rerun")
@@ -319,21 +319,6 @@ if predict_btn:
                     mime="application/json"
                 )
             
-            with col3:
-                try:
-                    import io
-                    excel_buffer = io.BytesIO()
-                    res_df.to_excel(excel_buffer, index=False, sheet_name="Predictions")
-                    excel_buffer.seek(0)
-                    st.download_button(
-                        label="📊 Download as Excel",
-                        data=excel_buffer.getvalue(),
-                        file_name=f"predictions_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                except ImportError:
-                    st.info("Install `openpyxl` for Excel export: `pip install openpyxl`")
-
             charts_container = st.container()
             with charts_container:
                 for bin_id_orig, chart_series in charts_data:
