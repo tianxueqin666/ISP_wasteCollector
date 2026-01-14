@@ -47,6 +47,11 @@ DEFAULT_SCALER = os.path.join(MODEL_FOLDER, "bilstm_scalers.pkl")
 
 # Sidebar
 with st.sidebar:
+    with st.sidebar:
+        st.markdown("---")
+        if st.button("Go to empty page"):
+            st.switch_page("pages/2_Empty_Page.py")
+
     st.header("Controls")
 
     models = []
