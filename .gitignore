@@ -3,14 +3,8 @@ __pycache__/
 .env
 .vscode/
 .DS_Store
-.venv/
+# weather_cache.json
+Jakob_Record.md
 venv/
-.idea/
-ISP_Project_env/
-
-# Python generated files
-*.egg-info/
-dist/
-build/
-
-
+.venv/
+**/venv/
