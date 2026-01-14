@@ -144,7 +144,6 @@ def plot_time_series_df(series, title=None):
             alt.Chart(df_plot)
             .mark_line(color="#81b43a")
             .encode(x="timestamp:T", y="value:Q", tooltip=["timestamp", "value"]) 
-            .interactive()
         )
         if title:
             chart = chart.properties(title=title)
@@ -196,7 +195,7 @@ if selection_method == "Map-based" and df is not None:
         width=900,
         height=600,
         title="Bins Map — Drag to select region"
-    ).interactive()
+    )
     
     # Display chart and capture selection
     selected_data = st.altair_chart(map_chart, use_container_width=True, on_select="rerun")

@@ -29,7 +29,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(HERE))         # project root
 MODEL_PATH = os.path.join(REPO_ROOT, "outputs", "models", "lstm_fill_rate_model.keras")
 X_PATH = os.path.join(REPO_ROOT, "data", "X_test.npy")
 Y_PATH = os.path.join(REPO_ROOT, "data", "y_test.npy")
-PROCESSED_CSV = os.path.join(REPO_ROOT, "..", "data", "processed_filllevel.csv")
+PROCESSED_CSV = os.path.join(REPO_ROOT, "data", "processed_filllevel.csv")
 
 # Cache loaders
 @st.cache_resource
@@ -45,7 +45,7 @@ def load_test_npy(x_path: str, y_path: str):
 df = None
 available_serials = []
 df = pd.read_csv(PROCESSED_CSV, parse_dates=["date"])
-df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+df["timestamp"] = pd.to_datetime(df["date"], errors="coerce")
 df = df.dropna(subset=["timestamp"])
 available_serials = sorted(df["serialNumber"].astype(str).unique().tolist())
 
@@ -102,7 +102,6 @@ if selection_method == "Map-based" and df is not None:
         )
         .add_params(brush)
         .properties(width=900, height=600, title="Bins Map — Drag to select region")
-        .interactive()
     )
 
     selected_data = st.altair_chart(map_chart, use_container_width=True, on_select="rerun")
