@@ -3,7 +3,7 @@ __pycache__/
 .env
 .vscode/
 .DS_Store
-weather_cache.json
+# weather_cache.json
 Jakob_Record.md
 venv/
 .venv/
