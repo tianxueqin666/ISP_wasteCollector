@@ -1,6 +1,6 @@
-***📦 Waste Collection Prediction Model using IoT & XGBoost***
+****📦 Waste Collection Prediction Model using IoT & XGBoost****
 
-**📌 Project Overview**
+***📌 Project Overview***
 
 This project develops an AI-driven waste collection prediction system that leverages IoT sensor data and machine learning (XGBoost) to forecast waste bin fill levels and enable demand-driven collection strategies.
 
@@ -23,7 +23,9 @@ Timestamp
 Location
 External factors (e.g., weather, holidays)
 
-**⚙️ Methodology**
+
+
+***⚙️ Methodology***
 
 **1. Data Preprocessing**
 
@@ -60,7 +62,8 @@ Environmental factors
 Location-based usage differences
 
 
-**📈 Results & Impact**
+
+***📈 Results & Impact***
 
 **Operational Impact**
 
@@ -99,7 +102,9 @@ Deploy real-time streaming pipelines
 Expand dataset across multiple cities
 Explore deep learning models (LSTM, Transformers)
 
-**🛠️ Tech Stack**
+
+
+***🛠️ Tech Stack***
 
 Python
 XGBoost
