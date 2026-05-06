@@ -1,124 +1,79 @@
-****📦 Waste Collection Prediction Model using IoT & XGBoost****
+# ♻️ Waste Collection Prediction Model (IoT + XGBoost)
 
-***📌 Project Overview***
+## 📌 Overview
+This project develops an AI-driven waste collection prediction system using IoT sensor data and XGBoost to forecast bin fill levels. It enables demand-driven collection, reducing unnecessary trips, operational costs, and environmental impact.
 
-This project develops an AI-driven waste collection prediction system that leverages IoT sensor data and machine learning (XGBoost) to forecast waste bin fill levels and enable demand-driven collection strategies.
+---
 
-Traditional waste collection relies on fixed schedules, leading to unnecessary trips, increased fuel consumption, and overflow risks. This project addresses these inefficiencies by transforming real-time sensor data into actionable predictions for smarter urban operations.
+## 🎯 Objectives
+- Predict future waste bin fill levels  
+- Optimize collection schedules  
+- Reduce operational inefficiencies  
+- Support sustainable urban planning  
 
-**🎯 Objectives**
+---
 
-Predict future waste bin fill levels using time-series IoT data
-Optimize collection timing and resource allocation
-Reduce operational inefficiencies and environmental impact
-Support data-driven urban sustainability planning
+## 🌟 What Makes This Project Interesting
+- **Real-world impact:** Directly addresses inefficiencies in urban waste management with measurable cost and carbon reduction  
+- **Data-to-decision bridge:** Translates raw IoT sensor data into actionable operational insights  
+- **Explainable AI:** Uses SHAP to ensure transparency in model predictions, aligning with responsible AI principles  
+- **Sustainability focus:** Combines machine learning with environmental and social impact analysis  
+- **Business relevance:** Designed not just as a model, but as a decision-support system for smart cities  
 
-**📊 Dataset**
+---
 
-Source: Argyle Square Smart Bin IoT dataset (Melbourne)
-Type: Time-series sensor data
-Features include:
-Fill level (% capacity)
-Timestamp
-Location
-External factors (e.g., weather, holidays)
+## 📊 Dataset
+- Argyle Square Smart Bin dataset (IoT sensors)  
+- Time-series data including:
+  - Fill levels (%)
+  - Timestamp
+  - Location
+  - External factors (e.g., weather, holidays)
 
+---
 
+## ⚙️ Methodology
 
+### Data Processing
+- Cleaned missing and noisy data  
+- Engineered temporal and lag features  
 
+### Model Selection
+- Compared SARIMAX, Prophet, and XGBoost  
+- Selected XGBoost for nonlinear modeling and strong performance  
 
-***⚙️ Methodology***
+### Model Explainability
+- Applied SHAP to interpret feature importance  
 
-**1. Data Preprocessing**
+---
 
-Cleaned missing and noisy IoT sensor data
-Engineered temporal features (hour, day, seasonality)
-Normalized and structured data for modeling
+## 📈 Results
+- Reduced unnecessary collection trips  
+- Improved resource allocation  
+- Estimated CO₂ reduction: 15–22 tons annually  
+- Achieved cost savings with scalable deployment potential  
 
-**2. Model Selection**
+---
 
-We compared multiple forecasting approaches:
-SARIMAX (statistical baseline)
-Prophet / NeuralProphet (trend & seasonality modeling)
-XGBoost (nonlinear machine learning model)
+## 🧠 System Architecture
+IoT Sensors → Data Processing → XGBoost Model → Prediction Output → Decision Support  
 
-👉 Final choice: **XGBoost**, due to its ability to:
-Capture nonlinear relationships
-Handle multivariate features
-Deliver strong predictive performance on time-series data
+---
 
-**3. Model Training**
+## 🛠️ Tech Stack
+- Python  
+- XGBoost  
+- Pandas / NumPy  
+- SHAP  
 
-Supervised learning on historical fill-level data
-Feature set included:
-Lag features (previous fill levels)
-Temporal indicators
-Contextual variables
+---
 
-**4. Model Explainability**
+## 🚀 Future Work
+- Integrate route optimization  
+- Deploy real-time data pipelines  
+- Expand to multi-city datasets  
 
-Applied SHAP (SHapley Additive Explanations)
-Identified key drivers such as:
-Time patterns (daily/weekly trends)
-Environmental factors
-Location-based usage differences
+---
 
-
-
-
-
-***📈 Results & Impact***
-
-**Operational Impact**
-
-Reduced unnecessary collection trips
-Improved resource allocation efficiency
-Enabled demand-driven scheduling
-
-**Environmental Impact**
-
-Estimated reduction of 15–22 tons of CO₂ annually for mid-sized cities
-Lower fuel consumption and emissions
-
-**Business Value**
-
-ROI achievable within 1–1.5 years through cost savings
-
-
-**🧠 System Architecture**
-
-IoT Layer: Smart bin sensors collect real-time data
-Data Layer: Time-series storage and preprocessing
-Model Layer: XGBoost prediction engine
-Application Layer: Decision-support interface for planners
-
-**🚀 Key Features**
-
-Real-time fill-level prediction
-Scalable for smart city integration
-Explainable AI for transparent decision-making
-Designed for integration with route optimization systems
-
-**🔮 Future Improvements**
-
-Integrate route optimization algorithms
-Deploy real-time streaming pipelines
-Expand dataset across multiple cities
-Explore deep learning models (LSTM, Transformers)
-
-
-
-
-
-***🛠️ Tech Stack***
-
-Python
-XGBoost
-Pandas / NumPy
-SHAP
-Time-series modeling tools
-
-
-
-**📎 Project Context**
-This project was developed as part of the Intelligent Systems Project (UPC – Artificial Intelligence), focusing on AI applications for sustainable urban management.
+## 📎 Context
+Developed as part of the Intelligent Systems Project (AI), focusing on smart city and sustainability applications.
