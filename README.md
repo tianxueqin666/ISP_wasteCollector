@@ -25,6 +25,8 @@ External factors (e.g., weather, holidays)
 
 
 
+
+
 ***⚙️ Methodology***
 
 **1. Data Preprocessing**
@@ -60,6 +62,8 @@ Identified key drivers such as:
 Time patterns (daily/weekly trends)
 Environmental factors
 Location-based usage differences
+
+
 
 
 
@@ -104,6 +108,8 @@ Explore deep learning models (LSTM, Transformers)
 
 
 
+
+
 ***🛠️ Tech Stack***
 
 Python
@@ -111,6 +117,8 @@ XGBoost
 Pandas / NumPy
 SHAP
 Time-series modeling tools
+
+
 
 **📎 Project Context**
 This project was developed as part of the Intelligent Systems Project (UPC – Artificial Intelligence), focusing on AI applications for sustainable urban management.
